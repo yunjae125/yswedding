@@ -17,17 +17,16 @@ async function handle(request,env){
    if(!request.headers.get('Content-Type')?.startsWith('application/json'))return json({error:'잘못된 요청입니다.'},415);
    const raw=await request.text();if(raw.length>5000)return json({error:'입력 내용이 너무 깁니다.'},413);
    let body;try{body=JSON.parse(raw)}catch{return json({error:'입력 내용을 확인해 주세요.'},400)}
+   if(body===null||typeof body!=='object'||Array.isArray(body))return json({error:'입력 내용을 확인해 주세요.'},400);
    const {id,password}=body;
    if(typeof id!=='string'||! /^[a-f0-9-]{36}$/.test(id)||typeof password!=='string'||password.length<6||password.length>100)return json({error:'비밀번호는 6~100자로 입력해 주세요.'},400);
    const name=typeof body.name==='string'?body.name.trim():'';
    const message=typeof body.message==='string'?body.message.trim():'';
    if(request.method!=='DELETE'&&(!name||name.length>30||!message||message.length>500))return json({error:'이름 30자, 축하 글 500자 이내로 입력해 주세요.'},400);
    if(request.method==='POST'){
-    const existing=await db(env).prepare('SELECT id FROM messages WHERE id=?').bind(id).first();
-    if(existing)return json({ok:true});
     const salt=hex(crypto.getRandomValues(new Uint8Array(16)));
-    await db(env).prepare('INSERT INTO messages (id,name,message,salt,hash,created) VALUES (?,?,?,?,?,?)').bind(id,name,message,salt,await passwordHash(password,salt),Date.now()).run();
-    return json({ok:true},201);
+    const inserted=await db(env).prepare('INSERT INTO messages (id,name,message,salt,hash,created) VALUES (?,?,?,?,?,?) ON CONFLICT(id) DO NOTHING RETURNING id').bind(id,name,message,salt,await passwordHash(password,salt),Date.now()).first();
+    return json({ok:true},inserted?201:200);
    }
    const row=await db(env).prepare('SELECT salt,hash FROM messages WHERE id=?').bind(id).first();
    if(!row)return json({error:'이미 삭제된 글입니다.'},404);
