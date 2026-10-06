@@ -1,0 +1,5 @@
+*-preview.jpg
+.sites-runtime/
+node_modules/
+.wrangler/
+dist/

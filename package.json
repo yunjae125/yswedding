@@ -1,0 +1,1 @@
+{"name":"yswedding","private":true,"type":"module","scripts":{"build":"node scripts/build.mjs","db:generate":"drizzle-kit generate","check":"node --check public/app.js && node --check public/features.js && node --check worker/index.js"},"devDependencies":{"drizzle-kit":"0.31.10","drizzle-orm":"0.45.2","wrangler":"4.92.0"}}
