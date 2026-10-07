@@ -3,8 +3,9 @@ const modal=document.getElementById('lightbox');
 const large=document.getElementById('large-photo');
 const more=document.getElementById('more');
 let current=0,expanded=false,opener=null;
-document.getElementById('cover').src=photos[0].url;
-photos.forEach((photo,i)=>{const button=document.createElement('button');button.className='photo-card';button.hidden=i>=3;button.setAttribute('aria-label',`사진 ${i+1} 크게 보기`);const img=document.createElement('img');img.src=photo.url;img.alt=photo.alt;img.loading='lazy';button.append(img);button.addEventListener('click',()=>{opener=button;show(i);modal.showModal();document.body.classList.add('modal-open')});grid.append(button)});
+function setPhoto(element,photo){element.style.backgroundImage=`url("${photo.url}")`;element.setAttribute('aria-label',photo.alt)}
+setPhoto(document.getElementById('cover'),photos[0]);
+photos.forEach((photo,i)=>{const button=document.createElement('button');button.className='photo-card';button.hidden=i>=3;button.setAttribute('aria-label',`사진 ${i+1} 크게 보기`);const img=document.createElement('span');img.className='photo-surface';img.setAttribute('aria-hidden','true');setPhoto(img,photo);button.append(img);button.addEventListener('click',()=>{opener=button;show(i);modal.showModal();document.body.classList.add('modal-open')});grid.append(button)});
 let slideVersion=0, slideAnimations=[], outgoingPhoto=null;
 function clearSlide(){
   slideAnimations.forEach(animation=>animation.cancel());
@@ -39,8 +40,7 @@ async function show(i){
     Object.assign(outgoingPhoto.style,{position:'absolute',left:`${rect.left-parent.left}px`,top:`${rect.top-parent.top}px`,width:`${rect.width}px`,height:`${rect.height}px`,pointerEvents:'none'});
     frame.append(outgoingPhoto);
   }
-  large.src=photos[target].url;
-  large.alt=photos[target].alt;
+  setPhoto(large,photos[target]);
   document.getElementById('counter').textContent=`${target+1} / ${photos.length}`;
   if(animated){
     const distance=Math.min(frame.clientWidth, 600);
