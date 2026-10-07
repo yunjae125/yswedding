@@ -5,12 +5,58 @@ const more=document.getElementById('more');
 let current=0,expanded=false,opener=null;
 document.getElementById('cover').src=photos[0].url;
 photos.forEach((photo,i)=>{const button=document.createElement('button');button.className='photo-card';button.hidden=i>=3;button.setAttribute('aria-label',`사진 ${i+1} 크게 보기`);const img=document.createElement('img');img.src=photo.url;img.alt=photo.alt;img.loading='lazy';button.append(img);button.addEventListener('click',()=>{opener=button;show(i);modal.showModal();document.body.classList.add('modal-open')});grid.append(button)});
-function show(i){current=(i+photos.length)%photos.length;large.src=photos[current].url;large.alt=photos[current].alt;document.getElementById('counter').textContent=`${current+1} / ${photos.length}`}
+let slideVersion=0, slideAnimations=[], outgoingPhoto=null;
+function clearSlide(){
+  slideAnimations.forEach(animation=>animation.cancel());
+  slideAnimations=[];
+  outgoingPhoto?.remove();
+  outgoingPhoto=null;
+}
+async function show(i){
+  const direction=i<current?-1:1;
+  const target=(i+photos.length)%photos.length;
+  const previous=current;
+  const version=++slideVersion;
+  current=target;
+  const animated=modal.open && target!==previous && !window.matchMedia('(prefers-reduced-motion: reduce)').matches && !!large.animate;
+  if(animated){
+    // Keep the current photo visible while the next one loads.
+    const preload=new Image();
+    preload.src=photos[target].url;
+    try { await preload.decode(); } catch { if(version===slideVersion) current=previous; return; }
+    if(version!==slideVersion || !modal.open) return;
+  }
+  clearSlide();
+  const frame=large.parentElement;
+  if(animated){
+    frame.style.position='relative';
+    frame.style.overflow='hidden';
+    const rect=large.getBoundingClientRect(), parent=frame.getBoundingClientRect();
+    outgoingPhoto=large.cloneNode(false);
+    outgoingPhoto.removeAttribute('id');
+    outgoingPhoto.alt='';
+    outgoingPhoto.setAttribute('aria-hidden','true');
+    Object.assign(outgoingPhoto.style,{position:'absolute',left:`${rect.left-parent.left}px`,top:`${rect.top-parent.top}px`,width:`${rect.width}px`,height:`${rect.height}px`,pointerEvents:'none'});
+    frame.append(outgoingPhoto);
+  }
+  large.src=photos[target].url;
+  large.alt=photos[target].alt;
+  document.getElementById('counter').textContent=`${target+1} / ${photos.length}`;
+  if(animated){
+    const options={duration:420,easing:'cubic-bezier(0.22, 0.61, 0.36, 1)'};
+    slideAnimations=[
+      outgoingPhoto.animate([{transform:'translateX(0)',opacity:1},{transform:`translateX(${-direction*64}px)`,opacity:0}],{...options,fill:'forwards'}),
+      large.animate([{transform:`translateX(${direction*64}px)`,opacity:0},{transform:'translateX(0)',opacity:1}],options)
+    ];
+    Promise.all(slideAnimations.map(animation=>animation.finished)).then(()=>{if(version===slideVersion)clearSlide()}).catch(()=>{});
+  }
+}
+
 more.addEventListener('click',()=>{expanded=!expanded;[...grid.children].forEach((el,i)=>el.hidden=!expanded&&i>=3);more.setAttribute('aria-expanded',String(expanded));more.innerHTML=expanded?'사진 접기 <span>−</span>':'사진 더보기 <span>+</span>';if(!expanded)document.getElementById('gallery').scrollIntoView({block:'start',behavior:'smooth'})});
 document.getElementById('close').onclick=()=>modal.close();
 document.getElementById('prev').onclick=()=>show(current-1);
 document.getElementById('next').onclick=()=>show(current+1);
-modal.addEventListener('close',()=>{document.body.classList.remove('modal-open');opener?.focus()});
+modal.addEventListener('close',()=>{slideVersion++;clearSlide();document.body.classList.remove('modal-open');opener?.focus()});
 modal.addEventListener('click',e=>{if(e.target.classList.contains('viewer-image'))modal.close()});
 modal.addEventListener('keydown',e=>{if(e.key==='ArrowRight'){e.preventDefault();show(current+1)}if(e.key==='ArrowLeft'){e.preventDefault();show(current-1)}});
 let touchX=0;large.addEventListener('touchstart',e=>touchX=e.changedTouches[0].clientX,{passive:true});large.addEventListener('touchend',e=>{const delta=e.changedTouches[0].clientX-touchX;if(Math.abs(delta)>45)show(current+(delta<0?1:-1))},{passive:true});
