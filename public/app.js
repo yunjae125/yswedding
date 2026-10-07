@@ -30,15 +30,15 @@ let touchX=0;large.addEventListener('touchstart',e=>touchX=e.changedTouches[0].c
       }
       observer.unobserve(target);
     });
-  }, {threshold: 0, rootMargin: '0px 0px -32px 0px'});
+  }, {threshold: 0, rootMargin: '0px 0px -56px 0px'});
   const selector = '.invitation > *, .gallery-heading, .photo-card, #more, .details > .eyebrow, .details > h2, .details-grid > div, .calendar-block, .location-block > *, .guestbook > .eyebrow, .guestbook > h2, .guestbook > .section-note, .share-section > *, footer > *';
   document.querySelectorAll(selector).forEach(element => {
     // Leave the initial viewport and restored scroll position immediately readable.
     if (!element.hidden && element.getBoundingClientRect().top < window.innerHeight) return;
     const animation = element.animate([
-      {opacity: 0, transform: 'translateY(22px)'},
+      {opacity: 0, transform: 'translateY(18px)'},
       {opacity: 1, transform: 'translateY(0)'}
-    ], {duration: 800, easing: 'cubic-bezier(0.22, 1, 0.36, 1)', fill: 'both'});
+    ], {duration: 1100, easing: 'cubic-bezier(0.25, 0.1, 0.25, 1)', fill: 'both'});
     animation.pause();
     pending.set(element, animation);
     observer.observe(element);
