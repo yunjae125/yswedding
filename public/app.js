@@ -43,10 +43,11 @@ async function show(i){
   large.alt=photos[target].alt;
   document.getElementById('counter').textContent=`${target+1} / ${photos.length}`;
   if(animated){
-    const options={duration:420,easing:'cubic-bezier(0.22, 0.61, 0.36, 1)'};
+    const distance=Math.min(frame.clientWidth, 600);
+    const options={duration:480,easing:'cubic-bezier(0.22, 0.61, 0.36, 1)'};
     slideAnimations=[
-      outgoingPhoto.animate([{transform:'translateX(0)',opacity:1},{transform:`translateX(${-direction*64}px)`,opacity:0}],{...options,fill:'forwards'}),
-      large.animate([{transform:`translateX(${direction*64}px)`,opacity:0},{transform:'translateX(0)',opacity:1}],options)
+      outgoingPhoto.animate([{transform:'translateX(0)',opacity:1},{transform:`translateX(${-direction*distance}px)`,opacity:0}],{...options,fill:'forwards'}),
+      large.animate([{transform:`translateX(${direction*distance}px)`,opacity:0},{transform:'translateX(0)',opacity:1}],options)
     ];
     Promise.all(slideAnimations.map(animation=>animation.finished)).then(()=>{if(version===slideVersion)clearSlide()}).catch(()=>{});
   }
@@ -57,9 +58,24 @@ document.getElementById('close').onclick=()=>modal.close();
 document.getElementById('prev').onclick=()=>show(current-1);
 document.getElementById('next').onclick=()=>show(current+1);
 modal.addEventListener('close',()=>{slideVersion++;clearSlide();document.body.classList.remove('modal-open');opener?.focus()});
-modal.addEventListener('click',e=>{if(e.target.classList.contains('viewer-image'))modal.close()});
+// The photo surface captures taps and swipes; close using the explicit close button.
 modal.addEventListener('keydown',e=>{if(e.key==='ArrowRight'){e.preventDefault();show(current+1)}if(e.key==='ArrowLeft'){e.preventDefault();show(current-1)}});
-let touchX=0;large.addEventListener('touchstart',e=>touchX=e.changedTouches[0].clientX,{passive:true});large.addEventListener('touchend',e=>{const delta=e.changedTouches[0].clientX-touchX;if(Math.abs(delta)>45)show(current+(delta<0?1:-1))},{passive:true});
+const swipeSurface=large.parentElement;
+let swipeStart=null;
+swipeSurface.addEventListener('pointerdown',event=>{
+  if(!event.isPrimary || (event.pointerType==='mouse' && event.button!==0)) return;
+  swipeStart={id:event.pointerId,x:event.clientX,y:event.clientY};
+  swipeSurface.setPointerCapture(event.pointerId);
+});
+swipeSurface.addEventListener('pointerup',event=>{
+  if(!swipeStart || swipeStart.id!==event.pointerId) return;
+  const dx=event.clientX-swipeStart.x,dy=event.clientY-swipeStart.y;
+  swipeStart=null;
+  if(Math.abs(dx)>45 && Math.abs(dx)>Math.abs(dy)*1.2) show(current+(dx<0?1:-1));
+});
+swipeSurface.addEventListener('pointercancel',()=>{swipeStart=null});
+swipeSurface.addEventListener('lostpointercapture',()=>{swipeStart=null});
+
 
 // Progressive enhancement: content remains visible when motion is unsupported.
 (() => {
