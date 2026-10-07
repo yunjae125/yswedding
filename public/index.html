@@ -22,7 +22,15 @@
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='32' fill='%23f5f2eb'/%3E%3Ctext x='32' y='43' text-anchor='middle' font-family='serif' font-size='36' fill='%23766b58'%3E%26%3C/text%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400&family=Noto+Serif+KR:wght@400;500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="style.css"><script src="photos.js" defer></script><script src="app.js" defer></script><script src="features.js" defer></script>
+<link rel="stylesheet" href="style.css"><script src="photos.js" defer></script><script src="app.js?v=20261007-mobile2" defer></script><script src="features.js" defer></script>
+<style>
+/* Keep native image menus from targeting photos; gestures land on the wrapper. */
+.hero-photo,.photo-card,.viewer-image{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none;position:relative}
+.hero-photo img,.photo-card img,.viewer-image img{pointer-events:none;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none;-webkit-user-drag:none}
+.hero-photo::before,.photo-card::before,.viewer-image::before{content:"";position:absolute;inset:0;z-index:2;background:transparent}
+.hero-photo,.photo-card{touch-action:pan-y pinch-zoom}
+.viewer-image{touch-action:pan-y pinch-zoom;overflow:hidden}
+</style>
 </head>
 <body>
 <header><a href="#" aria-label="처음으로">y <i>&</i> s</a><span>THE WEDDING INVITATION</span></header>
