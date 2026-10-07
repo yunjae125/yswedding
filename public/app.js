@@ -59,3 +59,24 @@ let touchX=0;large.addEventListener('touchstart',e=>touchX=e.changedTouches[0].c
   motion.addEventListener('change', event => { if (event.matches) revealAll(); });
   window.addEventListener('beforeprint', revealAll);
 })();
+
+// Discourage casual photo saving without blocking gallery taps or swipe navigation.
+(() => {
+  const photoSelector = '.hero-photo, .photo-card, .viewer-image';
+  document.querySelectorAll(photoSelector).forEach(container => {
+    container.style.setProperty('-webkit-touch-callout', 'none');
+    container.style.setProperty('-webkit-user-select', 'none');
+    container.style.setProperty('user-select', 'none');
+    container.querySelectorAll('img').forEach(img => {
+      img.draggable = false;
+      img.style.setProperty('-webkit-touch-callout', 'none');
+      img.style.setProperty('-webkit-user-select', 'none');
+      img.style.setProperty('user-select', 'none');
+    });
+  });
+  for (const eventName of ['contextmenu', 'dragstart']) {
+    document.addEventListener(eventName, event => {
+      if (event.target instanceof Element && event.target.closest(photoSelector)) event.preventDefault();
+    });
+  }
+})();
