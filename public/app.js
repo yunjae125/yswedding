@@ -38,7 +38,7 @@ let touchX=0;large.addEventListener('touchstart',e=>touchX=e.changedTouches[0].c
     const animation = element.animate([
       {opacity: 0, transform: 'translateY(18px)'},
       {opacity: 1, transform: 'translateY(0)'}
-    ], {duration: 1100, easing: 'cubic-bezier(0.25, 0.1, 0.25, 1)', fill: 'both'});
+    ], {duration: 1100, easing: 'cubic-bezier(0.45, 0, 0.35, 1)', fill: 'both'});
     animation.pause();
     pending.set(element, animation);
     observer.observe(element);
