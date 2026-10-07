@@ -21,22 +21,22 @@ let touchX=0;large.addEventListener('touchstart',e=>touchX=e.changedTouches[0].c
   if (motion.matches || !('IntersectionObserver' in window) || !Element.prototype.animate) return;
   const pending = new Map();
   const observer = new IntersectionObserver(entries => {
-    entries.forEach(({target, isIntersecting}) => {
-      if (!isIntersecting) return;
+    entries.forEach(({target, isIntersecting, boundingClientRect}) => {
       const animation = pending.get(target);
-      if (animation) {
-        animation.play();
-        animation.finished.then(() => { animation.cancel(); pending.delete(target); }).catch(() => {});
+      if (!animation) return;
+      if (isIntersecting) {
+        if (animation.playState === 'paused') animation.play();
+      } else if (boundingClientRect.top > window.innerHeight / 2 && !target.contains(document.activeElement)) {
+        // Re-arm only below the viewport, never hide content as it leaves at the top.
+        animation.pause();
+        animation.currentTime = 0;
       }
-      observer.unobserve(target);
     });
-  }, {threshold: 0, rootMargin: '0px 0px -56px 0px'});
-  const selector = '.invitation > *, .gallery-heading, .photo-card, #more, .details > .eyebrow, .details > h2, .details-grid > div, .calendar-block, .location-block > *, .guestbook > .eyebrow, .guestbook > h2, .guestbook > .section-note, .share-section > *, footer > *';
+  }, {threshold: 0, rootMargin: '0px 0px -100px 0px'});
+  const selector = '.invitation > *, .gallery-heading, .photo-card, #more, .details > .eyebrow, .details > h2, .details-grid > div, .calendar-block, .location-block > *, .guestbook > .eyebrow, .guestbook > h2, .guestbook > .section-note, .share-section > *';
   document.querySelectorAll(selector).forEach(element => {
-    // Leave the initial viewport and restored scroll position immediately readable.
-    if (!element.hidden && element.getBoundingClientRect().top < window.innerHeight) return;
     const animation = element.animate([
-      {opacity: 0, transform: 'translateY(18px)'},
+      {opacity: 0, transform: 'translateY(36px)'},
       {opacity: 1, transform: 'translateY(0)'}
     ], {duration: 1100, easing: 'cubic-bezier(0.45, 0, 0.35, 1)', fill: 'both'});
     animation.pause();
