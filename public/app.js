@@ -2,6 +2,10 @@ const grid = document.getElementById("photo-grid");
 const modal = document.getElementById("lightbox");
 const large = document.getElementById("large-photo");
 const more = document.getElementById("more");
+const galleryTrack = document.getElementById("gallery-track");
+const galleryPrev = document.getElementById("gallery-prev");
+const galleryNext = document.getElementById("gallery-next");
+const galleryPosition = document.getElementById("gallery-position");
 const albumNotes = [
   "창가에 머문 햇살",
   "초록빛으로 기억될 날",
@@ -16,11 +20,10 @@ function setPhoto(element, photo, thumbnail = false) {
   if (!thumbnail) element.setAttribute("aria-label", photo.alt);
 }
 
-photos.forEach((photo, index) => {
+function createPhotoButton(photo, index, className) {
   const button = document.createElement("button");
   button.type = "button";
-  button.className = "photo-card";
-  button.hidden = index >= albumNotes.length;
+  button.className = className;
   button.setAttribute("aria-label", `${photo.alt} 크게 보기`);
 
   const surface = document.createElement("span");
@@ -28,21 +31,105 @@ photos.forEach((photo, index) => {
   surface.setAttribute("aria-hidden", "true");
   setPhoto(surface, photo, true);
   button.append(surface);
-  if (index < albumNotes.length) {
-    const note = document.createElement("span");
-    note.className = "photo-note";
-    note.setAttribute("aria-hidden", "true");
-    note.textContent = albumNotes[index];
-    button.append(note);
-  }
   button.addEventListener("click", () => {
     opener = button;
     show(index);
     modal.showModal();
     document.body.classList.add("modal-open");
   });
-  grid.append(button);
+  return button;
+}
+
+photos.forEach((photo, index) => {
+  const slide = document.createElement("div");
+  slide.className = "gallery-slide";
+  slide.setAttribute("role", "group");
+  slide.setAttribute("aria-roledescription", "슬라이드");
+  slide.setAttribute(
+    "aria-label",
+    `전체 ${photos.length}장 중 ${index + 1}번째`,
+  );
+  slide.append(createPhotoButton(photo, index, "carousel-photo"));
+  galleryTrack.append(slide);
+
+  const card = createPhotoButton(photo, index, "photo-card");
+  if (index < albumNotes.length) {
+    const note = document.createElement("span");
+    note.className = "photo-note";
+    note.setAttribute("aria-hidden", "true");
+    note.textContent = albumNotes[index];
+    card.append(note);
+  }
+  grid.append(card);
 });
+
+const slides = Array.from(galleryTrack.children);
+let pendingGalleryIndex = null;
+let galleryScrollTimer;
+function nearestSlide() {
+  const offset = galleryTrack.scrollLeft;
+  return slides.reduce(
+    (nearest, slide, index) =>
+      Math.abs(slide.offsetLeft - offset) <
+      Math.abs(slides[nearest].offsetLeft - offset)
+        ? index
+        : nearest,
+    0,
+  );
+}
+
+function renderGalleryPosition(index) {
+  galleryPrev.setAttribute("aria-disabled", String(index === 0));
+  galleryNext.setAttribute(
+    "aria-disabled",
+    String(index === slides.length - 1),
+  );
+  slides.forEach((slide, position) => {
+    slide.firstElementChild.tabIndex = position === index ? 0 : -1;
+  });
+  const label = `${index + 1} / ${slides.length}`;
+  if (galleryPosition.textContent !== label)
+    galleryPosition.textContent = label;
+}
+
+function settleGallery() {
+  pendingGalleryIndex = null;
+  renderGalleryPosition(nearestSlide());
+}
+
+function moveGallery(direction) {
+  const start = pendingGalleryIndex ?? nearestSlide();
+  const index = Math.max(0, Math.min(slides.length - 1, start + direction));
+  if (index === start) return;
+  pendingGalleryIndex = index;
+  galleryTrack.scrollTo({ left: slides[index].offsetLeft });
+}
+
+galleryPrev.addEventListener("click", () => moveGallery(-1));
+galleryNext.addEventListener("click", () => moveGallery(1));
+galleryTrack.addEventListener("keydown", (event) => {
+  if (
+    event.target !== galleryTrack ||
+    !["ArrowLeft", "ArrowRight"].includes(event.key)
+  )
+    return;
+  event.preventDefault();
+  moveGallery(event.key === "ArrowLeft" ? -1 : 1);
+});
+if ("onscrollend" in galleryTrack) {
+  galleryTrack.addEventListener("scrollend", settleGallery);
+} else {
+  galleryTrack.addEventListener(
+    "scroll",
+    () => {
+      clearTimeout(galleryScrollTimer);
+      galleryScrollTimer = setTimeout(settleGallery, 140);
+    },
+    { passive: true },
+  );
+}
+renderGalleryPosition(0);
+
 const swipeSurface = large.parentElement;
 let slideVersion = 0,
   slideAnimations = [],
@@ -102,7 +189,7 @@ function settleSlides(dx, width, direction) {
   const elements = [sidePhotos[0], large, sidePhotos[1]];
   const duration = window.matchMedia("(prefers-reduced-motion: reduce)").matches
     ? 0
-    : 300;
+    : 360;
   slideAnimations = elements.map((element, i) =>
     element.animate(
       [
@@ -141,15 +228,11 @@ function show(i) {
 
 more.addEventListener("click", () => {
   expanded = !expanded;
-  [...grid.children].forEach((card, index) => {
-    card.hidden = !expanded && index >= albumNotes.length;
-  });
+  grid.hidden = !expanded;
   more.setAttribute("aria-expanded", String(expanded));
   more.innerHTML = expanded
     ? '사진 접기 <span aria-hidden="true">−</span>'
-    : '사진 더보기 <span aria-hidden="true">+</span>';
-  if (!expanded)
-    document.getElementById("gallery").scrollIntoView({ block: "start" });
+    : '사진 모아보기 <span aria-hidden="true">+</span>';
 });
 document.getElementById("close").onclick = () => modal.close();
 document.getElementById("prev").onclick = () => show(current - 1);
@@ -248,20 +331,20 @@ window.addEventListener("resize", () => {
     { threshold: 0, rootMargin: "0px 0px -100px 0px" },
   );
   const selector =
-    ".invitation > *, .gallery-heading, .photo-card, .photo-note, .details > .eyebrow, .details > h2, .details-grid > div, .calendar-block, .location-block > *, .guestbook > h2, .share-section > *";
+    ".invitation > *, .gallery-heading, .gallery-carousel, .photo-card, .photo-note, .details > .eyebrow, .details > h2, .details-grid > div, .calendar-block, .location-block > *, .guestbook > h2, .share-section > *";
   document.querySelectorAll(selector).forEach((element) => {
-    const animation = element.animate(
-      [
-        { opacity: 0, transform: "translateY(36px)" },
-        { opacity: 1, transform: "translateY(0)" },
-      ],
-      {
-        duration: 1100,
-        delay: element.classList.contains("photo-note") ? 180 : 0,
-        easing: "cubic-bezier(0.45, 0, 0.35, 1)",
-        fill: "both",
-      },
-    );
+    const frames = element.classList.contains("gallery-carousel")
+      ? [{ opacity: 0 }, { opacity: 1 }]
+      : [
+          { opacity: 0, transform: "translateY(30px)" },
+          { opacity: 1, transform: "translateY(0)" },
+        ];
+    const animation = element.animate(frames, {
+      duration: 1450,
+      delay: element.classList.contains("photo-note") ? 250 : 80,
+      easing: "cubic-bezier(0.45, 0, 0.35, 1)",
+      fill: "both",
+    });
     animation.pause();
     pending.set(element, animation);
     observer.observe(element);
@@ -288,7 +371,8 @@ window.addEventListener("resize", () => {
 })();
 
 // Background surfaces keep the native image menu from receiving gallery gestures.
-const photoSelector = ".hero-photo, .photo-card, .viewer-image";
+const photoSelector =
+  ".hero-photo, .carousel-photo, .photo-card, .viewer-image";
 for (const eventName of ["contextmenu", "dragstart"]) {
   document.addEventListener(eventName, (event) => {
     if (event.target instanceof Element && event.target.closest(photoSelector))
