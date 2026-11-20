@@ -1,7 +1,6 @@
 const grid = document.getElementById("photo-grid");
 const modal = document.getElementById("lightbox");
 const large = document.getElementById("large-photo");
-const more = document.getElementById("more");
 const galleryTrack = document.getElementById("gallery-track");
 const galleryPrev = document.getElementById("gallery-prev");
 const galleryNext = document.getElementById("gallery-next");
@@ -11,9 +10,8 @@ const albumNotes = [
   "초록빛으로 기억될 날",
   "노을을 따라 걷던 우리",
 ];
-let current = 0,
-  expanded = false,
-  opener = null;
+let current = 0;
+let opener = null;
 function setPhoto(element, photo, thumbnail = false) {
   const suffix = thumbnail ? "-thumb" : "";
   element.style.backgroundImage = `url("photos/${photo.file}${suffix}.webp")`;
@@ -51,15 +49,15 @@ photos.forEach((photo, index) => {
   );
   slide.append(createPhotoButton(photo, index, "carousel-photo"));
   galleryTrack.append(slide);
+});
 
-  const card = createPhotoButton(photo, index, "photo-card");
-  if (index < albumNotes.length) {
-    const note = document.createElement("span");
-    note.className = "photo-note";
-    note.setAttribute("aria-hidden", "true");
-    note.textContent = albumNotes[index];
-    card.append(note);
-  }
+albumNotes.forEach((caption, index) => {
+  const card = createPhotoButton(photos[index], index, "photo-card");
+  const note = document.createElement("span");
+  note.className = "photo-note";
+  note.setAttribute("aria-hidden", "true");
+  note.textContent = caption;
+  card.append(note);
   grid.append(card);
 });
 
@@ -226,14 +224,6 @@ function show(i) {
   }
 }
 
-more.addEventListener("click", () => {
-  expanded = !expanded;
-  grid.hidden = !expanded;
-  more.setAttribute("aria-expanded", String(expanded));
-  more.innerHTML = expanded
-    ? '사진 접기 <span aria-hidden="true">−</span>'
-    : '사진 모아보기 <span aria-hidden="true">+</span>';
-});
 document.getElementById("close").onclick = () => modal.close();
 document.getElementById("prev").onclick = () => show(current - 1);
 document.getElementById("next").onclick = () => show(current + 1);
@@ -331,7 +321,7 @@ window.addEventListener("resize", () => {
     { threshold: 0, rootMargin: "0px 0px -100px 0px" },
   );
   const selector =
-    ".invitation > *, .gallery-heading, .gallery-carousel, .photo-card, .photo-note, .details > .eyebrow, .details > h2, .details-grid > div, .calendar-block, .location-block > *, .guestbook > h2, .share-section > *";
+    ".invitation > *, .gallery-carousel, .photo-card, .photo-note, .details > .eyebrow, .details > h2, .details-grid > div, .calendar-block, .location-block > *, .guestbook > h2, .share-section > *";
   document.querySelectorAll(selector).forEach((element) => {
     const frames = element.classList.contains("gallery-carousel")
       ? [{ opacity: 0 }, { opacity: 1 }]

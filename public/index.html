@@ -49,9 +49,9 @@
       type="image/webp"
       fetchpriority="high"
     />
-    <link rel="stylesheet" href="style.css?v=20261120-intro" />
+    <link rel="stylesheet" href="style.css?v=20261120-story" />
     <script src="photos.js?v=20261120" defer></script>
-    <script src="app.js?v=20261120-slides" defer></script>
+    <script src="app.js?v=20261120-story" defer></script>
     <script src="features.js?v=20261120-album" defer></script>
   </head>
   <body>
@@ -99,11 +99,10 @@
         </p>
         <div class="signature">윤재 <span>&amp;</span> 소정</div>
       </section>
-      <section class="memories" id="gallery">
-        <div class="gallery-heading">
-          <p class="eyebrow">GALLERY</p>
-          <h2>함께 담은 순간들</h2>
-        </div>
+      <section class="story-album" id="story" aria-label="함께 담은 순간들">
+        <div id="photo-grid" class="photo-grid"></div>
+      </section>
+      <section class="memories" id="gallery" aria-label="사진 갤러리">
         <div
           class="gallery-carousel"
           role="region"
@@ -143,16 +142,6 @@
           </div>
           <p class="gallery-position" id="gallery-position" role="status"></p>
         </div>
-        <button
-          class="more"
-          id="more"
-          type="button"
-          aria-expanded="false"
-          aria-controls="photo-grid"
-        >
-          사진 모아보기 <span aria-hidden="true">+</span>
-        </button>
-        <div id="photo-grid" class="photo-grid" hidden></div>
       </section>
       <section class="details" id="location">
         <p class="eyebrow">OUR WEDDING DAY</p>
