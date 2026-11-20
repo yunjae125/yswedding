@@ -2,6 +2,11 @@ const grid = document.getElementById("photo-grid");
 const modal = document.getElementById("lightbox");
 const large = document.getElementById("large-photo");
 const more = document.getElementById("more");
+const albumNotes = [
+  "창가에 머문 햇살",
+  "초록빛으로 기억될 날",
+  "노을을 따라 걷던 우리",
+];
 let current = 0,
   expanded = false,
   opener = null;
@@ -15,7 +20,7 @@ photos.forEach((photo, index) => {
   const button = document.createElement("button");
   button.type = "button";
   button.className = "photo-card";
-  button.hidden = index >= 3;
+  button.hidden = index >= albumNotes.length;
   button.setAttribute("aria-label", `${photo.alt} 크게 보기`);
 
   const surface = document.createElement("span");
@@ -23,6 +28,13 @@ photos.forEach((photo, index) => {
   surface.setAttribute("aria-hidden", "true");
   setPhoto(surface, photo, true);
   button.append(surface);
+  if (index < albumNotes.length) {
+    const note = document.createElement("span");
+    note.className = "photo-note";
+    note.setAttribute("aria-hidden", "true");
+    note.textContent = albumNotes[index];
+    button.append(note);
+  }
   button.addEventListener("click", () => {
     opener = button;
     show(index);
@@ -130,7 +142,7 @@ function show(i) {
 more.addEventListener("click", () => {
   expanded = !expanded;
   [...grid.children].forEach((card, index) => {
-    card.hidden = !expanded && index >= 3;
+    card.hidden = !expanded && index >= albumNotes.length;
   });
   more.setAttribute("aria-expanded", String(expanded));
   more.innerHTML = expanded
@@ -236,7 +248,7 @@ window.addEventListener("resize", () => {
     { threshold: 0, rootMargin: "0px 0px -100px 0px" },
   );
   const selector =
-    ".invitation > *, .gallery-heading, .photo-card, .details > .eyebrow, .details > h2, .details-grid > div, .calendar-block, .location-block > *, .guestbook > .eyebrow, .guestbook > h2, .guestbook > .section-note, .share-section > *";
+    ".invitation > *, .gallery-heading, .photo-card, .photo-note, .details > .eyebrow, .details > h2, .details-grid > div, .calendar-block, .location-block > *, .guestbook > h2, .share-section > *";
   document.querySelectorAll(selector).forEach((element) => {
     const animation = element.animate(
       [
@@ -245,6 +257,7 @@ window.addEventListener("resize", () => {
       ],
       {
         duration: 1100,
+        delay: element.classList.contains("photo-note") ? 180 : 0,
         easing: "cubic-bezier(0.45, 0, 0.35, 1)",
         fill: "both",
       },

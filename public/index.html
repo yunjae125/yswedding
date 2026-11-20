@@ -39,7 +39,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400&family=Great+Vibes&family=Noto+Serif+KR:wght@400;500&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400&family=Gowun+Batang:wght@400;700&family=Great+Vibes&display=swap"
       rel="stylesheet"
     />
     <link
@@ -49,16 +49,13 @@
       type="image/webp"
       fetchpriority="high"
     />
-    <link rel="stylesheet" href="style.css?v=20261120" />
+    <link rel="stylesheet" href="style.css?v=20261120-album" />
     <script src="photos.js?v=20261120" defer></script>
-    <script src="app.js?v=20261120" defer></script>
-    <script src="features.js" defer></script>
+    <script src="app.js?v=20261120-album" defer></script>
+    <script src="features.js?v=20261120-album" defer></script>
   </head>
   <body>
     <header class="site-header" id="top">
-      <a class="wordmark" href="#top" aria-label="청첩장 처음으로"
-        >Y <em>&amp;</em> S</a
-      >
       <nav aria-label="청첩장 메뉴">
         <a href="#gallery">사진</a>
         <a href="#location">오시는 길</a>
@@ -74,7 +71,6 @@
             aria-label="창가에 함께 서 있는 윤재와 소정"
           ></div>
           <h1 id="wedding-title"><span>Our</span><span>wedding day</span></h1>
-          <div class="hero-names">윤재 <em>&amp;</em> 소정</div>
         </div>
         <div class="hero-details">
           <time datetime="2027-04-24T11:00:00+09:00"
@@ -200,17 +196,68 @@
         </div>
       </section>
       <section class="guestbook" id="guestbook">
-        <p class="eyebrow">WITH YOUR LOVE</p>
-        <h2>따뜻한 마음을 남겨주세요</h2>
-        <p class="section-note">
-          두 사람에게 전하는 짧은 한마디,<br />오래도록 소중히 간직하겠습니다.
-        </p>
-        <button class="quiet-button filled" id="write-message">
-          축하 글 남기기
-        </button>
+        <h2 id="guestbook-title">
+          두 사람에게 마음을 남겨주세요 <span aria-hidden="true">♡</span>
+        </h2>
+        <form
+          id="guestbook-form"
+          method="post"
+          aria-labelledby="guestbook-title"
+        >
+          <div class="guestbook-fields">
+            <label for="guest-name">이름</label>
+            <label for="guest-password">비밀번호</label>
+            <input
+              id="guest-name"
+              name="name"
+              autocomplete="name"
+              maxlength="30"
+              required
+            />
+            <input
+              id="guest-password"
+              name="password"
+              type="password"
+              autocomplete="new-password"
+              minlength="6"
+              maxlength="100"
+              placeholder="6자 이상"
+              aria-describedby="guest-password-note"
+              required
+            />
+          </div>
+          <p id="guest-password-note" class="field-note">
+            비밀번호는 6자 이상이며 수정하거나 삭제할 때 사용합니다.
+          </p>
+          <label class="guestbook-message-label" for="guest-message"
+            >축하 메시지</label
+          >
+          <textarea
+            id="guest-message"
+            name="message"
+            rows="3"
+            maxlength="500"
+            aria-describedby="guest-public-note"
+            required
+          ></textarea>
+          <div class="guestbook-meta">
+            <p class="field-note" id="guest-public-note">
+              이름과 메시지는 공개됩니다.
+            </p>
+            <span id="message-remaining">남은 글자 500</span>
+          </div>
+          <p id="guest-submit-error" class="submit-error" role="alert"></p>
+          <button
+            type="submit"
+            class="quiet-button post-message"
+            id="post-message"
+          >
+            메시지 등록
+          </button>
+        </form>
         <p class="guest-status" id="guest-status" role="status"></p>
         <div id="messages" class="messages"></div>
-        <div class="pagination">
+        <div class="pagination" id="guest-pagination" hidden>
           <button class="quiet-button" id="older-prev">이전</button
           ><span id="page-label">1</span
           ><button class="quiet-button" id="older-next">다음</button>
@@ -263,7 +310,7 @@
         </button>
         <p class="eyebrow">A LITTLE NOTE OF LOVE</p>
         <h2 id="form-title">축하의 마음</h2>
-        <form id="message-form">
+        <form id="message-form" method="post" aria-labelledby="form-title">
           <div id="message-fields">
             <label
               >이름<input
@@ -293,7 +340,7 @@
               minlength="6"
               maxlength="100"
               required
-              autocomplete="new-password"
+              autocomplete="current-password"
               placeholder="6자 이상 입력해 주세요"
           /></label>
           <p class="field-note" id="password-note">
