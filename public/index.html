@@ -3,6 +3,30 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <script>
+      (() => {
+        const navigation = performance.getEntriesByType("navigation")[0];
+        if (navigation?.type === "back_forward") return;
+
+        const fragment = location.hash;
+        const showCover =
+          navigation?.type === "reload" ||
+          !fragment ||
+          fragment === "#invitation";
+        if (!showCover) return;
+
+        // Set this before parsing the section targets so reload starts at the cover.
+        if ("scrollRestoration" in history)
+          history.scrollRestoration = "manual";
+        if (fragment)
+          history.replaceState(
+            history.state,
+            "",
+            location.pathname + location.search,
+          );
+        window.scrollTo(0, 0);
+      })();
+    </script>
     <title>윤재와 소정의 결혼식</title>
     <meta name="description" content="윤재와 소정의 결혼식에 초대합니다." />
     <meta name="robots" content="noindex" />
