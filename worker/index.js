@@ -39,8 +39,14 @@ async function handle(request,env){
  }
  const path=url.pathname==='/'?'/index.html':url.pathname;
  if(!Object.hasOwn(assets,path))return new Response('Not found',{status:404});
- const type=path.endsWith('.html')?'text/html':path.endsWith('.css')?'text/css':'text/javascript';
- return new Response(assets[path],{headers:{'Content-Type':type+'; charset=utf-8','Cache-Control':'no-cache','X-Content-Type-Options':'nosniff','Referrer-Policy':'strict-origin-when-cross-origin'}});
+ const type = path.endsWith('.webp') ? 'image/webp' :
+   path.endsWith('.jpg') ? 'image/jpeg' :
+   path.endsWith('.html') ? 'text/html; charset=utf-8' :
+   path.endsWith('.css') ? 'text/css; charset=utf-8' : 'text/javascript; charset=utf-8';
+ const body = type.startsWith('image/')
+   ? Uint8Array.from(atob(assets[path]), char => char.charCodeAt(0))
+   : assets[path];
+ return new Response(body,{headers:{'Content-Type':type,'Cache-Control':'no-cache','X-Content-Type-Options':'nosniff','Referrer-Policy':'strict-origin-when-cross-origin'}});
 }
 export default {async fetch(request,env){
  const origin=request.headers.get('Origin');
