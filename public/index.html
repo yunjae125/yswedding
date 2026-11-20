@@ -36,33 +36,27 @@
       rel="icon"
       href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='32' fill='%23f5f2eb'/%3E%3Ctext x='32' y='43' text-anchor='middle' font-family='serif' font-size='36' fill='%23766b58'%3E%26%3C/text%3E%3C/svg%3E"
     />
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400&family=Gowun+Batang:wght@400;700&family=Great+Vibes&display=swap"
-      rel="stylesheet"
-    />
-    <link
+      id="cover-preload"
       rel="preload"
       as="image"
       href="photos/cover.webp"
       type="image/webp"
       fetchpriority="high"
     />
-    <link rel="stylesheet" href="style.css?v=20261120-story" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;1,400&family=Gowun+Batang:wght@400;700&family=Great+Vibes&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="style.css?v=20261120-photo-first" />
     <script src="photos.js?v=20261120" defer></script>
     <script src="app.js?v=20261120-story" defer></script>
     <script src="features.js?v=20261120-album" defer></script>
   </head>
   <body>
-    <header class="site-header" id="top">
-      <nav aria-label="청첩장 메뉴">
-        <a href="#gallery">사진</a>
-        <a href="#location">오시는 길</a>
-        <a href="#guestbook">방명록</a>
-      </nav>
-    </header>
-    <main>
+    <main id="top">
       <section class="hero" aria-labelledby="wedding-title">
         <div class="hero-photo">
           <div
@@ -70,6 +64,28 @@
             role="img"
             aria-label="창가에 함께 서 있는 윤재와 소정"
           ></div>
+          <script>
+            (() => {
+              const poster = document.currentScript.parentElement;
+              const image = new Image();
+              poster.dataset.cover = "loading";
+              const showTitle = () => {
+                // Let the browser paint the decoded photo before starting the title.
+                requestAnimationFrame(() => {
+                  requestAnimationFrame(() => {
+                    poster.dataset.cover = "ready";
+                  });
+                });
+              };
+              const showFallback = () => delete poster.dataset.cover;
+              image.onload = () => {
+                if (image.decode) image.decode().then(showTitle, showFallback);
+                else showTitle();
+              };
+              image.onerror = showFallback;
+              image.src = document.getElementById("cover-preload").href;
+            })();
+          </script>
           <h1 id="wedding-title" lang="en">
             <span>Our</span>
             <span>wedding day</span>
@@ -87,6 +103,11 @@
           ></a>
         </div>
       </section>
+      <nav class="site-nav" aria-label="청첩장 메뉴">
+        <a href="#gallery">사진</a>
+        <a href="#location">오시는 길</a>
+        <a href="#guestbook">방명록</a>
+      </nav>
       <section class="invitation" id="invitation">
         <p class="eyebrow">YOU ARE INVITED</p>
         <h2>소중한 당신을 초대합니다</h2>
