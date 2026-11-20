@@ -12,10 +12,44 @@ const albumNotes = [
 ];
 let current = 0;
 let opener = null;
+function photoBackground(photo, thumbnail = false) {
+  return `url("photos/${photo.file}${thumbnail ? "-thumb" : ""}.webp")`;
+}
+
 function setPhoto(element, photo, thumbnail = false) {
-  const suffix = thumbnail ? "-thumb" : "";
-  element.style.backgroundImage = `url("photos/${photo.file}${suffix}.webp")`;
+  element.style.backgroundImage = photoBackground(photo, thumbnail);
   if (!thumbnail) element.setAttribute("aria-label", photo.alt);
+}
+
+function enhancePhoto(button, photo) {
+  const surface = button.firstElementChild;
+  if (surface.dataset.detailed) return;
+  surface.dataset.detailed = "true";
+  const thumbnail = photoBackground(photo, true);
+  const full = photoBackground(photo);
+  const responsive = `image-set(${thumbnail} 1x, ${full} 2x)`;
+  // Keep the thumbnail underneath while the detailed photo loads.
+  surface.style.backgroundImage = CSS.supports("background-image", responsive)
+    ? `${responsive}, ${thumbnail}`
+    : window.devicePixelRatio > 1
+      ? `${full}, ${thumbnail}`
+      : thumbnail;
+}
+
+function whenNearViewport(element, loadDetails) {
+  if (!("IntersectionObserver" in window)) {
+    loadDetails();
+    return;
+  }
+  const observer = new IntersectionObserver(
+    ([entry]) => {
+      if (!entry.isIntersecting) return;
+      observer.disconnect();
+      loadDetails();
+    },
+    { rootMargin: "240px 0px" },
+  );
+  observer.observe(element);
 }
 
 function createPhotoButton(photo, index, className) {
@@ -62,6 +96,7 @@ albumNotes.forEach((caption, index) => {
 });
 
 const slides = Array.from(galleryTrack.children);
+let galleryDetailsEnabled = false;
 let pendingGalleryIndex = null;
 let galleryScrollTimer;
 function nearestSlide() {
@@ -88,6 +123,17 @@ function renderGalleryPosition(index) {
   const label = `${index + 1} / ${slides.length}`;
   if (galleryPosition.textContent !== label)
     galleryPosition.textContent = label;
+  if (galleryDetailsEnabled) enhanceNearbySlides(index);
+}
+
+function enhanceNearbySlides(index) {
+  for (
+    let position = Math.max(0, index - 1);
+    position <= Math.min(slides.length - 1, index + 1);
+    position++
+  ) {
+    enhancePhoto(slides[position].firstElementChild, photos[position]);
+  }
 }
 
 function settleGallery() {
@@ -127,6 +173,15 @@ if ("onscrollend" in galleryTrack) {
   );
 }
 renderGalleryPosition(0);
+whenNearViewport(grid, () => {
+  Array.from(grid.children).forEach((card, index) =>
+    enhancePhoto(card, photos[index]),
+  );
+});
+whenNearViewport(galleryTrack, () => {
+  galleryDetailsEnabled = true;
+  enhanceNearbySlides(nearestSlide());
+});
 
 const swipeSurface = large.parentElement;
 let slideVersion = 0,
